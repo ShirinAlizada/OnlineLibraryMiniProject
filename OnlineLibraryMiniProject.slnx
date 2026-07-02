@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/presentation/">
+    <Project Path="presentation/OnlineLibraryMiniProject.ConsoleApp/OnlineLibraryMiniProject.ConsoleApp.csproj" Id="13c64aa4-fa96-4157-bcdc-852152939b9d" />
+  </Folder>
+  <Folder Name="/src/" />
+  <Folder Name="/src/core/">
+    <Project Path="OnlineLibraryMiniProject.Domain/OnlineLibraryMiniProject.Domain.csproj" Id="45ff0bad-82cf-408c-95be-d64e5f9cd02e" />
+    <Project Path="src/OnlineLibraryMiniProject.Application/OnlineLibraryMiniProject.Application.csproj" Id="4c148f38-f24b-4054-97d7-7a4f8f118696" />
+  </Folder>
+  <Folder Name="/src/Infrastructure/">
+    <Project Path="Infrastructure/OnlineLibraryMiniProject.Persistence/OnlineLibraryMiniProject.Persistence.csproj" Id="a3e18bee-ba75-47e9-a71f-befb0c0e34c3" />
+  </Folder>
+</Solution>
