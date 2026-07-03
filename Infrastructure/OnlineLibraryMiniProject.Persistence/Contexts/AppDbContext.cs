@@ -3,6 +3,7 @@ using OnlineLibraryMiniProject.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+using System.Reflection.Emit;
 using System.Text;
 
 namespace OnlineLibraryMiniProject.Persistence.Contexts
@@ -14,10 +15,22 @@ namespace OnlineLibraryMiniProject.Persistence.Contexts
             // Configure the database connection string here
             base.OnConfiguring(optionsBuilder);
             optionsBuilder.UseSqlServer("server=(localdb)\\MSSQLLocalDB;database=OnlineLibraryProject;trusted_connection=true;integrated security=true;trustservercertificate=true");
+
+
         }
-       
-            //public DbSet<Book> Books { get; set; }
-        //public DbSet<Author> Authors { get; set; }
-        //public DbSet<ReservedItem> ReservedItems { get; set; }
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            // İlk öncə base metodu çağırırıq
+            base.OnModelCreating(modelBuilder);
+
+            // Bu sətir Configurations qovluğundakı bütün IEntityTypeConfiguration-ları avtomatik tapıb tətbiq edir
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
+        }
+
+
+        public DbSet<Book> Books { get; set; }
+        public DbSet<Author> Authors { get; set; }
+        public DbSet<ReservedItem> ReservedItems { get; set; }
     }
 }
