@@ -25,8 +25,4 @@
     <ProjectReference Include="..\..\src\OnlineLibraryMiniProject.Application\OnlineLibraryMiniProject.Application.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Helpers\" />
-  </ItemGroup>
-
 </Project>

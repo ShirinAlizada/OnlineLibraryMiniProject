@@ -23,17 +23,17 @@ namespace OnlineLibraryMiniProject.Application.Services
         public void Create(Book book)
         {
             if (book is null)
-                throw new ArgumentNullException(nameof(book), "Kitab məlumatı boş ola bilməz.");
+                throw new ArgumentNullException(nameof(book), "Kitab melumatı boş ola bilmez.");
 
             if (string.IsNullOrWhiteSpace(book.Name))
-                throw new ArgumentException("Kitabın adı boş ola bilməz!", nameof(book.Name));
+                throw new ArgumentException("Kitabın adı boş ola bilmez!", nameof(book.Name));
 
             if (book.PageCount <= 0)
-                throw new ArgumentException("Kitabın səhifə sayı 0 və ya mənfi ola bilməz!", nameof(book.PageCount));
+                throw new ArgumentException("Kitabın sehifə sayı 0 ve ya menfi ola bilmez!", nameof(book.PageCount));
 
             var author = _authors.GetById(book.AuthorId);
             if (author is null)
-                throw new InvalidOperationException("Daxil etdiyiniz ID-yə sahib müəllif tapılmadı!");
+                throw new InvalidOperationException("Daxil etdiyiniz ID-ye sahib müellif tapılmadı!");
 
             book.Name = book.Name.Trim();
             book.Author = author;
@@ -51,7 +51,7 @@ namespace OnlineLibraryMiniProject.Application.Services
             // Əgər kitab hazırda aktiv rezervasiyadadırsa (Confirmed və ya Started) silinə bilməz
             var hasActive = book.ReservedItems.Any(r => r.Status == Status.Confirmed || r.Status == Status.Started);
             if (hasActive)
-                throw new InvalidOperationException("Kitab hazırda aktiv rezervasiyada (istifadədə) olduğu üçün silinə bilməz!");
+                throw new InvalidOperationException("Kitab hazırda aktiv rezervasiyada (istifadede) olduğu üçün siline bilmez!");
 
             _books.Delete(id);
         }

@@ -20,10 +20,10 @@ namespace OnlineLibraryMiniProject.Application.Services
         public void Create(Author author)
         {
             if (author is null)
-                throw new ArgumentNullException(nameof(author), "Müəllif məlumatları boş ola bilməz.");
+                throw new ArgumentNullException(nameof(author), "Müellif melumatları boş ola bilmez.");
 
             if (string.IsNullOrWhiteSpace(author.Name))
-                throw new ArgumentException("Müəllifin adı boş ola bilməz!", nameof(author.Name));
+                throw new ArgumentException("Müellifin adı boş ola bilmez!", nameof(author.Name));
 
             // Adı kənardakı boşluqlardan təmizləyirik
             author.Name = author.Name.Trim();
@@ -42,11 +42,11 @@ namespace OnlineLibraryMiniProject.Application.Services
         {
             var author = _authors.GetById(id);
             if (author is null)
-                throw new InvalidOperationException("Müəllif tapılmadı.");
+                throw new InvalidOperationException("Müellif tapılmadı.");
 
             // Biznes Qaydası: Müəllifin bazada kitabları varsa, o silinə bilməz
             if (author.Books != null && author.Books.Any())
-                throw new InvalidOperationException("Bu müəllifin bazada kitabları mövcuddur. Müəllifi silmək üçün əvvəlcə onun kitablarını silməlisiniz!");
+                throw new InvalidOperationException("Bu müellifin bazada kitabları mövcuddur. Müellifi silmek üçün evvelce onun kitablarını silmelisiniz!");
 
             _authors.Delete(id);
         }

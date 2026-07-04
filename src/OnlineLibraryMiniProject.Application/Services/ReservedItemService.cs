@@ -23,20 +23,20 @@ namespace OnlineLibraryMiniProject.Application.Services
         public void Create(ReservedItem item)
         {
             if (item is null)
-                throw new ArgumentNullException(nameof(item), "Rezervasiya məlumatları boş ola bilməz!");
+                throw new ArgumentNullException(nameof(item), "Rezervasiya melumatları boş ola bilmez!");
 
             if (string.IsNullOrWhiteSpace(item.FinCode))
-                throw new ArgumentException("FIN Kod boş ola bilməz!", nameof(item.FinCode));
+                throw new ArgumentException("FIN Kod boş ola bilmez!", nameof(item.FinCode));
 
             item.FinCode = item.FinCode.Trim();
 
             if (item.EndDate <= item.StartDate)
-                throw new ArgumentException("Qaytarılma tarixi götürülmə tarixindən əvvəl və ya eyni gün ola bilməz!");
+                throw new ArgumentException("Qaytarılma tarixi götürülme tarixindən evvel ve ya eyni gün ola bilmez!");
 
             // Kitabın mövcudluğunu yoxlayırıq
             var book = _books.GetById(item.BookId);
             if (book is null)
-                throw new InvalidOperationException("Rezerv edilmək istənilən kitab tapılmadı!");
+                throw new InvalidOperationException("Rezerv edilmək istenilən kitab tapılmadı!");
 
             // Biznes Qaydası 1: Bir istifadəçi eyni anda maksimum 3 aktiv kitab rezerv edə bilər
             int activeReserv = _reservations.GetAll().Count(r =>
@@ -44,7 +44,7 @@ namespace OnlineLibraryMiniProject.Application.Services
                 (r.Status == Status.Confirmed || r.Status == Status.Started));
 
             if (activeReserv >= 3)
-                throw new InvalidOperationException("Bu FIN koda sahib istifadəçi eyni anda maksimum 3 aktiv kitab götürə bilər!");
+                throw new InvalidOperationException("Bu FIN koda sahib istifadeçi eyni anda maksimum 3 aktiv kitab götüre biler!");
 
             // Biznes Qaydası 2: Kitabın seçilmiş tarixlərdə başqası tərəfindən rezerv olunub-olunmadığını yoxlayırıq
             bool hasReserv = _reservations.GetAll().Any(r =>
@@ -68,7 +68,7 @@ namespace OnlineLibraryMiniProject.Application.Services
 
             // Biznes Qaydası: Əgər kitab artıq oxucuya verilibsə (Started), bu rezervasiya silinə bilməz
             if (item.Status == Status.Started)
-                throw new InvalidOperationException("Oxucuya verilmiş (Aktiv) kitabların rezervasiyası silinə bilməz!");
+                throw new InvalidOperationException("Oxucuya verilmiş (Aktiv) kitabların rezervasiyası siline bilmez!");
 
             _reservations.Delete(id);
         }
