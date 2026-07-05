@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using OnlineLibraryMiniProject.Application.Interfaces.Repositories;
 using OnlineLibraryMiniProject.Domain.Entities;
 using OnlineLibraryMiniProject.Domain.Entities.Enums;
 using OnlineLibraryMiniProject.Persistence.Contexts;
@@ -8,7 +9,7 @@ using System.Text;
 
 namespace OnlineLibraryMiniProject.Persistence.Repositories
 {
-    public class ReservedItemRepository
+    public class ReservedItemRepository : IReservedItemRepository
     {
         private readonly AppDbContext _context;
 
@@ -18,9 +19,17 @@ namespace OnlineLibraryMiniProject.Persistence.Repositories
         }
 
         // 8. Reserve Book
-        public void Add(ReservedItem item)
+        public void Create(ReservedItem item)
         {
             _context.ReservedItems.Add(item);
+            _context.SaveChanges();
+        }
+        public void Delete(int id)
+        {
+            var item = _context.ReservedItems.FirstOrDefault(r => r.Id == id);
+            if (item == null) return;
+
+            _context.ReservedItems.Remove(item);
             _context.SaveChanges();
         }
 
@@ -33,7 +42,7 @@ namespace OnlineLibraryMiniProject.Persistence.Repositories
         }
 
         // 9. Reservation List (Statusa görə sıralayırıq)
-        public List<ReservedItem> GetAllOrderedByStatus()
+        public List<ReservedItem> GetAll()
         {
             return _context.ReservedItems
                            .Include(r => r.Book)
@@ -42,7 +51,7 @@ namespace OnlineLibraryMiniProject.Persistence.Repositories
         }
 
         // 10. Change Reservation Status
-        public ReservedItem GetById(int id)
+        public ReservedItem? GetById(int id)
         {
             return _context.ReservedItems.FirstOrDefault(r => r.Id == id);
         }
@@ -60,6 +69,11 @@ namespace OnlineLibraryMiniProject.Persistence.Repositories
                            .Include(r => r.Book)
                            .Where(r => r.FinCode == finCode)
                            .ToList();
+        }
+        public void Update(ReservedItem item)
+        {
+            _context.ReservedItems.Update(item);
+            _context.SaveChanges();
         }
     }
 }

@@ -9,7 +9,7 @@ using OnlineLibraryMiniProject.Application.Interfaces.Repositories;
 
 namespace OnlineLibraryMiniProject.Persistence.Repositories
 {
-    public class BookRepository 
+    public class BookRepository : IBookRepository
     {
         private readonly AppDbContext _context;
 
@@ -19,35 +19,24 @@ namespace OnlineLibraryMiniProject.Persistence.Repositories
         }
 
         // 1. Create Book
-        public void Add(Book book)
+        public void Create(Book book)
         {
             _context.Books.Add(book);
             _context.SaveChanges();
         }
 
         // 2. Delete Book
-        public bool Delete(int id)
+        public void Delete(int id)
         {
-            var book = _context.Books
-                               .Include(b => b.ReservedItems)
-                               .FirstOrDefault(b => b.Id == id);
-
-            if (book == null) return false;
-
-            // Optional şərt: Əgər kitab hazırda kimdə sədə istifadədədirsə ("Started") silinməsin
-            bool isCurrentlyInUse = book.ReservedItems.Any(r => r.Status == Status.Started);
-            if (isCurrentlyInUse)
-            {
-                return false; // Silinə bilməz
-            }
+            var book = _context.Books.FirstOrDefault(b => b.Id == id);
+            if (book == null) return;
 
             _context.Books.Remove(book);
             _context.SaveChanges();
-            return true;
         }
 
         // 3. Get Book by Id (Rezervasiya tarixçəsi ilə birgə)
-        public Book GetByIdWithHistory(int id)
+        public Book? GetByIdWithHistory(int id)
         {
             return _context.Books
                            .Include(b => b.ReservedItems)
@@ -55,7 +44,7 @@ namespace OnlineLibraryMiniProject.Persistence.Repositories
         }
 
         // 4. Show All Books (Müəllif adı ilə birgə)
-        public List<Book> GetAllWithAuthor()
+        public List<Book> GetAll()
         {
             return _context.Books.Include(b => b.Author).ToList();
         }
@@ -63,6 +52,13 @@ namespace OnlineLibraryMiniProject.Persistence.Repositories
         public bool Exists(int id)
         {
             return _context.Books.Any(b => b.Id == id);
+        }
+        public Book? GetById(int id)
+        {
+            return _context.Books
+                           .Include(b => b.Author)
+                           .Include(b => b.ReservedItems)
+                           .FirstOrDefault(b => b.Id == id);
         }
     }
 }

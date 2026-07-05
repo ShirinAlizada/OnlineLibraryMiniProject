@@ -9,7 +9,7 @@ using System.Text;
 
 namespace OnlineLibraryMiniProject.Persistence.Repositories
 {
-    public class AuthorRepository
+    public class AuthorRepository : IAuthorRepository
     {
         private readonly AppDbContext _context;
 
@@ -19,20 +19,20 @@ namespace OnlineLibraryMiniProject.Persistence.Repositories
         }
 
         // 5. Create Author
-        public void Add(Author author)
+        public void Create(Author author)
         {
             _context.Authors.Add(author);
             _context.SaveChanges();
         }
 
         // 6. Show All Authors (Kitab sayı ilə birlikdə gətiririk)
-        public List<Author> GetAllWithBooks()
+        public List<Author> GetAll()
         {
             return _context.Authors.Include(a => a.Books).ToList();
         }
 
         // 7. Show Author's Books
-        public Author GetByIdWithBooks(int authorId)
+        public Author? GetById(int authorId)
         {
             return _context.Authors
                            .Include(a => a.Books)
@@ -43,6 +43,14 @@ namespace OnlineLibraryMiniProject.Persistence.Repositories
         public bool Exists(int id)
         {
             return _context.Authors.Any(a => a.Id == id);
+        }
+        public void Delete(int id)
+        {
+            var author = _context.Authors.FirstOrDefault(a => a.Id == id);
+            if (author == null) return;
+
+            _context.Authors.Remove(author);
+            _context.SaveChanges();
         }
     }
 }

@@ -7,12 +7,12 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
     public static class MenuManagement
     {
         // Oyun menyusu üçün retro-kiberpank rəng palitrası
-        public static ConsoleColor Accent = ConsoleColor.Green;
+        public static ConsoleColor Accent = ConsoleColor.Red;
         public static ConsoleColor Back = ConsoleColor.Black;
-        public static ConsoleColor Text = ConsoleColor.Green;
-        public static ConsoleColor Dim = ConsoleColor.DarkGreen;
-        public static ConsoleColor Error = ConsoleColor.Red;
-        public static ConsoleColor WarnCol = ConsoleColor.Yellow;
+        public static ConsoleColor Text = ConsoleColor.Red;
+        public static ConsoleColor Dim = ConsoleColor.DarkRed;
+        public static ConsoleColor Error = ConsoleColor.Yellow;
+        public static ConsoleColor WarnCol = ConsoleColor.DarkYellow;
 
         public struct Layout
         {
@@ -58,33 +58,31 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
         /// <summary>
         /// Prototip Oyunlar üçün Matrix / Cyberpunk üslubunda Boot Animasiyası
         /// </summary>
-        public static void Intro(string gameTitle = "PROTOTYPE_OS // MAIN_MENU")
+        public static void Intro(string gameTitle = "BLACKLIGHT_PROTOCOL // MAIN_MENU")
         {
             Init();
             Console.ForegroundColor = Accent;
 
-            // 1. Terminal Tipli Yüklənmə Sətirləri
             string[] bootLines = {
-                ">> INITIALIZING CORE MODULES...",
-                ">> LOADING GRAPHICS BUFFER... OK",
-                ">> ESTABLISHING NEURAL INTERFACE...",
-                ">> DECRYPTING GAME ASSETS...",
-                ">> MEMORY ALLOCATION: STABLE.",
-                ">> SYSTEM STATUS: ALPHA_BUILD_READY."
-            };
+        ">> BIOMASS SIGNATURE DETECTED...",
+        ">> INFECTING CORE DATABASE MODULES...",
+        ">> CONSUMING TARGET MEMORY STRUCTURES...",
+        ">> DECRYPTING VIRAL ASSET INDEX...",
+        ">> MUTATION STABLE: HOST INTEGRATED.",
+        ">> STATUS: MERCER_PROTOCOL_ACTIVE."
+    };
 
             Random rand = new Random();
             foreach (var line in bootLines)
             {
                 Console.WriteLine(line);
-                Thread.Sleep(rand.Next(150, 400)); // Hər sətir fərqli vaxtda gəlir (realist terminal effekti)
+                Thread.Sleep(rand.Next(150, 400));
             }
 
             Thread.Sleep(500);
             Console.Clear();
 
-            // 2. Yüklənmə Progress Bar Animasiyası
-            Console.Write("CONNECTING TO HOST ");
+            Console.Write("CONSUMING HOST ");
             for (int i = 0; i < 20; i++)
             {
                 Console.Write("█");
@@ -92,7 +90,6 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
             }
             Thread.Sleep(400);
 
-            // 3. Ekranın Glitch (Yanıb-Sönmə) Effekti (Oyunlarda Menu açılışı kimi)
             ComputeLayout();
 
             for (int i = 0; i < 3; i++)
@@ -103,7 +100,7 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                 Thread.Sleep(100);
             }
 
-            Footer("PROTOTYPE READY. ACCESS GRANTED.");
+            Footer("BIOMASS ACQUIRED. ACCESS GRANTED.");
         }
 
         public static void Frame(string header)
@@ -193,6 +190,23 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
             Console.CursorVisible = false;
             return s;
         }
+        public static string FooterAsk(string prompt)
+        {
+            Fill(L.Bottom, Back);
+            Box(L.Bottom, Accent);
+
+            var p = (prompt ?? "") + " ";
+            var w = L.Bottom.x2 - L.Bottom.x1 - 1;
+
+            SetPos(L.Bottom.x1 + 1, L.Bottom.y1 + 1);
+            WritePadded(p, w);
+
+            SetPos(L.Bottom.x1 + 1 + Math.Min(p.Length, w), L.Bottom.y1 + 1);
+            Console.CursorVisible = true;
+            var s = Console.ReadLine() ?? "";
+            Console.CursorVisible = false;
+            return s;
+        }
 
         public static void RightError(string text)
         {
@@ -246,25 +260,41 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
             var c = Console.ForegroundColor;
             if (color != null) Console.ForegroundColor = color.Value;
 
-            char tl = '┌', tr = '┐', bl = '└', br = '┘', h = '─', v = '│';
+            char corner = '▓';
+            char h1 = '=', h2 = 'x';
+            char v1 = '¦', v2 = '!';
 
-            SetPos(r.x1, r.y1); Console.Write(tl);
-            for (int x = r.x1 + 1; x < r.x2; x++) Console.Write(h);
-            Console.Write(tr);
+            // Üst xətt (qırıq-jagged)
+            SetPos(r.x1, r.y1); Console.Write(corner);
+            bool toggleH = false;
+            for (int x = r.x1 + 1; x < r.x2; x++)
+            {
+                Console.Write(toggleH ? h2 : h1);
+                toggleH = !toggleH;
+            }
+            Console.Write(corner);
 
+            // Yan xətlər (növbələşən simvollar)
+            bool toggleV = false;
             for (int y = r.y1 + 1; y < r.y2; y++)
             {
-                SetPos(r.x1, y); Console.Write(v);
-                SetPos(r.x2, y); Console.Write(v);
+                SetPos(r.x1, y); Console.Write(toggleV ? v2 : v1);
+                SetPos(r.x2, y); Console.Write(toggleV ? v2 : v1);
+                toggleV = !toggleV;
             }
 
-            SetPos(r.x1, r.y2); Console.Write(bl);
-            for (int x = r.x1 + 1; x < r.x2; x++) Console.Write(h);
-            Console.Write(br);
+            // Alt xətt
+            SetPos(r.x1, r.y2); Console.Write(corner);
+            toggleH = false;
+            for (int x = r.x1 + 1; x < r.x2; x++)
+            {
+                Console.Write(toggleH ? h2 : h1);
+                toggleH = !toggleH;
+            }
+            Console.Write(corner);
 
             Console.ForegroundColor = c;
         }
-
         static void Fill((int x1, int y1, int x2, int y2) r, ConsoleColor? _ = null)
         {
             var w = r.x2 - r.x1 - 1;
@@ -319,5 +349,85 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
         public static void ErrorMsg(string text) => Footer(text, Error);
         public static void Warn(string text) => Footer(text, WarnCol);
         public static void Info(string text) => Footer(text, Text);
+    
+    public static void Run(ManageMetods manage)
+        {
+            var actions = new Dictionary<int, (string Label, Action Act)>
+            {
+                [1] = ("Create Book", manage.CreateBook),
+                [2] = ("Delete Book", manage.DeleteBook),
+                [3] = ("Get Book by Id", manage.GetBookById),
+                [4] = ("Show All Books", manage.ShowAllBooks),
+                [5] = ("Create Author", manage.CreateAuthor),
+                [6] = ("Show All Authors", manage.ShowAllAuthors),
+                [7] = ("Show Author's Books", manage.ShowAuthorsBooks),
+                [8] = ("Reserve Book", manage.ReserveBook),
+                [9] = ("Reservation List", manage.ReservationList),
+                [10] = ("Change Reservation Status", manage.ChangeReservationStatus),
+                [11] = ("User's Reservations List", manage.UsersReservationsList),
+            };
+
+            Intro("ONLINE_LIBRARY // MAIN_MENU");
+
+            while (true)
+            {
+                ComputeLayout();
+                Frame("Online Library");
+
+                var menuItems = actions
+                    .OrderBy(kv => kv.Key)
+                    .Select(kv => $"{kv.Key,2}. {kv.Value.Label}")
+                    .ToList();
+
+                LeftMenu("Menu", menuItems);
+
+                RightBegin("Welcome");
+                RightWriteLines(new[]
+                {
+                    "Use numbers [1-11] to navigate.",
+                    "Press 0 to Exit."
+                });
+                RightEnd("Enter your choice [0-11] and press ENTER...");
+
+                //Footer("Enter your choice [0-11]: ");
+                //Console.SetCursorPosition(L.Bottom.x1 + 25, L.Bottom.y1 + 1);
+                var raw = (FooterAsk("Enter your choice [0-11]: ") ?? "").Trim();
+                Console.CursorVisible = true;
+                
+                Console.CursorVisible = false;
+
+                if (!int.TryParse(raw, out var pick))
+                {
+                    ErrorMsg("Please enter a number.");
+                    Thread.Sleep(900);
+                    continue;
+                }
+                if (pick == 0)
+                {
+                    Info("Exiting...");
+                    Thread.Sleep(500);
+                    Console.Clear();
+                    return;
+                }
+                if (!actions.TryGetValue(pick, out var item))
+                {
+                    Warn("Wrong selection. Try again.");
+                    Thread.Sleep(900);
+                    continue;
+                }
+
+                try
+                {
+                    item.Act();
+                }
+                catch (Exception ex)
+                {
+                    ErrorMsg(ex.Message);
+                    Console.CursorVisible = true;
+                    Console.ReadLine();
+                    Console.CursorVisible = false;
+                }
+            }
+        }
     }
 }

@@ -28,7 +28,7 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
             while (true)
             {
                 Console.Write(prompt);
-                if (int.Parse(Console.ReadLine(), out int result))
+                if (int.TryParse(Console.ReadLine(), out int result))
                 {
                     return result;
                 }
