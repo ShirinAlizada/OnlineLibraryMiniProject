@@ -21,9 +21,20 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
             _reservations = reservations;
         }
 
+
+        //LINQ-ın .All() metodundan istifadə edir. Mətndəki bütün simvollar (c) tək-tək yoxlanılır: əgər simvol hərfdirsə (char.IsLetter),
+        //boşluqdursa (' ') və ya defisdirsə ('-'), metod true qaytarır. Əgər bircə dənə də olsun rəqəm və ya fərqli simvol varsa, false qaytarır.
         private static bool IsLettersOnly(string s) => s.All(c => char.IsLetter(c) || c == ' ' || c == '-');
 
+
+
         // Enum-u ya rəqəmlə, ya da adı ilə oxumaq üçün ümumi metod
+        //Generic (<TEnum>) strukturundadır, yəni istənilən Enum tipi üçün işləyə bilər.
+        //İlk olaraq int.TryParse ilə yoxlayır ki, istifadəçi rəqəm yazıb ya yox.Əgər rəqəmdirsə və bu rəqəm 
+        //Enum daxilində təyin olunubsa(Enum.IsDefined), həmin rəqəmi Enum dəyərinə çevirir(result = (TEnum)...) və true qaytarır.
+        //Əgər rəqəm deyilsə, Enum.TryParse ilə mətni birbaşa Enum adlarına görə axtarır
+        //(məsələn: "Active", "Pending"). true arqumenti böyük/kiçik hərf fərqini qorunmamasını təmin edir.
+        
         private static bool TryReadEnum<TEnum>(string input, out TEnum result) where TEnum : struct, Enum
         {
             if (int.TryParse(input, out var n) && Enum.IsDefined(typeof(TEnum), n))
@@ -33,6 +44,8 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
             }
             return Enum.TryParse(input, true, out result);
         }
+
+
 
         // Enum seçimlərini ekrana real dəyərləri ilə çap edir
         private static void ShowEnumOptions<TEnum>() where TEnum : struct, Enum
@@ -53,6 +66,8 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
             {
                 MenuManagement.RightBegin("Create Book");
 
+                //İstifadəçi hansı məlumatları artıq daxil edibsə, onlar hər dövrün başında
+                //ekranda "Yadda saxlanılanlar" kimi vizual olaraq göstərilir.
                 if (!string.IsNullOrWhiteSpace(name)) MenuManagement.RightWriteLine($"Name     : {name}");
                 if (page > 0) MenuManagement.RightWriteLine($"Page     : {page}");
                 if (authorId > 0) MenuManagement.RightWriteLine($"AuthorId : {authorId}");
@@ -60,6 +75,10 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
 
                 if (step == 0)
                 {
+                    //İstifadəçidən kitab adı soruşulur. "menu" yazsa, funksiyadan çıxır (return).
+                    //Boş buraxsa, xəta verir və continue ilə dövrü yenidən başladır (addım dəyişmir).
+                    //Düzgün yazsa, name dəyişəninə yazılır və step = 1 olur (növbəti addıma keçir).
+
                     var input = (MenuManagement.RightAsk("Book name (menu): ") ?? "").Trim();
                     if (input.Equals("menu", StringComparison.OrdinalIgnoreCase)) { MenuManagement.RightEnd(); return; }
                     if (string.IsNullOrWhiteSpace(input))
@@ -72,10 +91,13 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                 }
                 else if (step == 1)
                 {
+                   
+                    //Istifadəçi "back" yazarsa, step = 0 edilir və continue vasitəsilə yenidən kitab adı soruşulan hissəyə qaytarılır.
                     var input = (MenuManagement.RightAsk("Page count (menu/back): ") ?? "").Trim();
                     if (input.Equals("menu", StringComparison.OrdinalIgnoreCase)) { MenuManagement.RightEnd(); return; }
                     if (input.Equals("back", StringComparison.OrdinalIgnoreCase)) { MenuManagement.RightEnd(); step = 0; continue; }
 
+                    //Əgər istifadəçi səhv məlumat daxil edirsə (məsələn, mənfi rəqəm və ya hərf), xəta mesajı göstərilir və continue ilə dövr yenidən başlayır.
                     if (!int.TryParse(input, out page) || page <= 0)
                     {
                         MenuManagement.RightError("Input a positive number.");
@@ -85,33 +107,42 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                 }
                 else
                 {
-                    var authors = _authors.GetAll().OrderBy(a => a.Name).ToList();
+                    //İstifadəçi "back" yazarsa, step = 1 edilir və continue vasitəsilə yenidən səhifə sayı soruşulan hissəyə qaytarılır.
+                    var authors = _authors.GetAll().OrderBy(a => a.Id).ToList();
                     if (authors.Count == 0)
                     {
+                        //Əgər müəlliflər siyahısı boşdursa, istifadəçiyə xəbərdarlıq mesajı göstərilir və funksiyadan çıxılır.
                         MenuManagement.RightWarn("No authors. Create an author first.");
                         MenuManagement.RightEnd(); return;
                     }
                     MenuManagement.RightWriteLine("-- Authors --");
                     foreach (var a in authors)
                     {
+                        //Müəllifin tam adı (ad + soyad) yaradılır. Əgər soyad boşdursa, yalnız ad göstərilir.
                         var full = string.IsNullOrWhiteSpace(a.Surname) ? a.Name : $"{a.Name} {a.Surname}";
                         MenuManagement.RightWriteLine($"ID:[{a.Id}] {full} | Books: {a.Books?.Count ?? 0}");
                     }
                     MenuManagement.RightWriteLine("");
-
+                    //İstifadəçidən müəllif ID soruşulur. "menu" yazsa, funksiyadan çıxır (return).
+                    //"back" yazsa, step = 1 olur və səhifə sayı soruşulan hissəyə qaytarılır.
                     var input = (MenuManagement.RightAsk("Author Id (menu/back): ") ?? "").Trim();
                     if (input.Equals("menu", StringComparison.OrdinalIgnoreCase)) { MenuManagement.RightEnd(); return; }
                     if (input.Equals("back", StringComparison.OrdinalIgnoreCase)) { MenuManagement.RightEnd(); step = 1; continue; }
 
+                    //Əgər istifadəçi düzgün müəllif ID daxil edirsə və bu ID mövcud müəlliflər siyahısında varsa, kitab yaradılır.
                     if (int.TryParse(input, out authorId) && _authors.GetByID(authorId) != null)
                     {
+
+                        //Kitab yaradılarkən try-catch bloku istifadə olunur ki, hər hansı bir xəta baş verərsə, istifadəçiyə xəta mesajı göstərilsin.
                         try
                         {
+                            //Kitab yaradılır və məlumat bazasına əlavə olunur.
                             _books.Create(new Book { Name = name.Trim(), PageCount = page, AuthorId = authorId });
                             MenuManagement.RightSuccess("Book created.");
                         }
                         catch (Exception ex)
                         {
+                            //Əgər kitab yaradılarkən hər hansı bir xəta baş verərsə, istifadəçiyə xəta mesajı göstərilir.
                             MenuManagement.RightError($"Error: {ex.Message}");
                         }
                         MenuManagement.RightEnd(); return;
@@ -133,7 +164,9 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
             {
                 MenuManagement.RightBegin("Delete Book");
 
-                var books = _books.GetAll().OrderBy(b => b.Name).ToList();
+                //Kitablar siyahısı əldə edilir və adlarına görə sıralanır. Əgər siyahı boşdursa,
+                //istifadəçiyə xəbərdarlıq mesajı göstərilir və funksiyadan çıxılır.
+                var books = _books.GetAll().OrderBy(b => b.Id).ToList();
                 if (books.Count == 0)
                 {
                     MenuManagement.RightWarn("No books.");
@@ -143,6 +176,10 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                 MenuManagement.RightWriteLine("-- Books --");
                 foreach (var b in books)
                 {
+                    //Mövcud kitabları ekrana siyahı şəklində çıxarır. Burada incə bir məqam var: b.Author is null yoxlaması
+                    //(NullReferenceException xətasının qarşısını almaq üçün).
+                    //Əgər kitaba bağlı müəllif obyekti yüklənməyibsə, sadəcə AuthorId yazdırır.
+                    //Yüklənibsə, müəllifin soyadı olub-olmamasını yoxlayıb tam adını formalaşdırır.
                     var author = b.Author is null
                         ? $"AuthorId={b.AuthorId}"
                         : (string.IsNullOrWhiteSpace(b.Author.Surname) ? b.Author.Name : $"{b.Author.Name} {b.Author.Surname}");
@@ -150,9 +187,11 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                 }
                 MenuManagement.RightWriteLine("");
 
+                //İstifadəçidən silmək istədiyi kitabın ID-si soruşulur. "menu" yazsa, funksiyadan çıxılır.
                 var input = (MenuManagement.RightAsk("Book Id (menu): ") ?? "").Trim();
                 if (input.Equals("menu", StringComparison.OrdinalIgnoreCase)) { MenuManagement.RightEnd(); return; }
 
+                //Əgər istifadəçi düzgün rəqəm daxil etməyibsə, xəta mesajı göstərilir və dövr yenidən başlayır.
                 if (!int.TryParse(input, out var id))
                 {
                     MenuManagement.RightError("Input a number.");
@@ -166,6 +205,7 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                     MenuManagement.RightEnd(); continue;
                 }
 
+                //Kitab silinərkən try-catch bloku istifadə olunur ki, hər hansı bir xəta baş verərsə, istifadəçiyə xəta mesajı göstərilsin.
                 try
                 {
                     _books.Delete(id);
@@ -183,6 +223,7 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
         // 3. Get Book By Id
         public void GetBookById()
         {
+            //İstifadəçi kitab ID-ni daxil edəcək və istəyə görə rezervasiya tarixçəsini də görmək imkanı olacaq.
             int step = 0;
             int id = 0;
             bool withHistory = false;
@@ -192,7 +233,7 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
             {
                 MenuManagement.RightBegin("Get Book By Id");
 
-                var books = _books.GetAll().OrderBy(b => b.Name).ToList();
+                var books = _books.GetAll().OrderBy(b => b.Id).ToList();
                 if (books.Count == 0)
                 {
                     MenuManagement.RightWarn("No books.");
@@ -200,8 +241,12 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                 }
 
                 MenuManagement.RightWriteLine("-- Books --");
+                //Mövcud kitabları ekrana siyahı şəklində çıxarır. Burada incə bir məqam var: b.Author is null yoxlaması
                 foreach (var b in books)
                 {
+
+                    //Əgər kitaba bağlı müəllif obyekti yüklənməyibsə, sadəcə AuthorId yazdırır.
+                    //Yüklənibsə, müəllifin soyadı olub-olmamasını yoxlayıb tam adını formalaşdırır.
                     var authorName = b.Author is null
                         ? $"AuthorId={b.AuthorId}"
                         : (string.IsNullOrWhiteSpace(b.Author.Surname) ? b.Author.Name : $"{b.Author.Name} {b.Author.Surname}");
@@ -211,6 +256,8 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
 
                 if (step == 0)
                 {
+
+                    //İstifadəçidən kitab ID soruşulur. "menu" yazsa, funksiyadan çıxılır.
                     var s = (MenuManagement.RightAsk("Book Id (menu): ") ?? "").Trim();
                     if (s.Equals("menu", StringComparison.OrdinalIgnoreCase)) { MenuManagement.RightEnd(); return; }
 
@@ -233,6 +280,7 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                 }
                 else
                 {
+                    //İstifadəçidən rezervasiya tarixçəsini görmək istəyib-istəmədiyi soruşulur. "menu" yazsa, funksiyadan çıxılır.
                     var s = (MenuManagement.RightAsk("Show reservation history? (y/n, menu/back): ") ?? "")
                         .Trim().ToLowerInvariant();
                     if (s == "menu") { MenuManagement.RightEnd(); return; }
@@ -246,6 +294,8 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                         MenuManagement.RightEnd(); continue;
                     }
 
+                    //Seçilmiş kitabın məlumatları ekrana çıxarılır. Burada da müəllifin
+                    //tam adı yaradılır və əgər müəllif obyekti null-dursa, sadəcə AuthorId göstərilir.
                     var author = selected!.Author is null
                         ? $"AuthorId={selected.AuthorId}"
                         : (string.IsNullOrWhiteSpace(selected.Author.Surname) ? selected.Author.Name : $"{selected.Author.Name} {selected.Author.Surname}");
@@ -254,6 +304,7 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
 
                     if (withHistory && selected.ReservedItems?.Any() == true)
                     {
+                        //Rezervasiya tarixçəsi varsa, hər bir rezervasiya üçün məlumatlar ekrana çıxarılır. Burada da kitabın adı yoxlanılır:
                         MenuManagement.RightWriteLine("-- History --");
                         foreach (var r in selected.ReservedItems.OrderByDescending(x => x.StartDate))
                         {
@@ -277,8 +328,9 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                 MenuManagement.RightWarn("No books.");
                 MenuManagement.RightEnd(); return;
             }
-            foreach (var b in list.OrderBy(x => x.Name))
+            foreach (var b in list.OrderBy(x => x.Id))
             {
+                //Müəllifin tam adı yaradılır və əgər müəllif obyekti null-dursa, sadəcə AuthorId göstərilir.
                 var author = b.Author is null
                     ? $"AuthorId={b.AuthorId}"
                     : (string.IsNullOrWhiteSpace(b.Author.Surname) ? b.Author.Name : $"{b.Author.Name} {b.Author.Surname}");
@@ -314,6 +366,7 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                     }
                     if (!IsLettersOnly(input))
                     {
+                        //Əgər istifadəçi adın daxilində hərf olmayan simvol daxil edirsə, xəta mesajı göstərilir və dövr yenidən başlayır.
                         MenuManagement.RightError("Name must contain only letters.");
                         MenuManagement.RightEnd(); continue;
                     }
@@ -326,6 +379,7 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                     if (input.Equals("menu", StringComparison.OrdinalIgnoreCase)) { MenuManagement.RightEnd(); return; }
                     if (input.Equals("back", StringComparison.OrdinalIgnoreCase)) { MenuManagement.RightEnd(); step = 0; continue; }
 
+                    //Əgər istifadəçi soyadını boş buraxırsa, surname null olaraq qalır. Əgər daxil edirsə, yalnız hərflərdən ibarət olub-olmadığı yoxlanılır.
                     if (string.IsNullOrWhiteSpace(input))
                         surname = null;
                     else
@@ -349,6 +403,7 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                     if (s.Equals("menu", StringComparison.OrdinalIgnoreCase)) { MenuManagement.RightEnd(); return; }
                     if (s.Equals("back", StringComparison.OrdinalIgnoreCase)) { MenuManagement.RightEnd(); step = 1; continue; }
 
+                    //Əgər istifadəçi düzgün Gender dəyəri daxil edərsə, onun dəyəri gender dəyişənə təyin olunur.
                     if (!TryReadEnum<Gender>(s, out gender))
                     {
                         MenuManagement.RightError("Wrong value.");
@@ -372,9 +427,62 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
             }
         }
 
+        // 5.1 Delete Author
+        public void DeleteAuthor()
+        {
+            while (true)
+            {
+                MenuManagement.RightBegin("Delete Author");
+
+                var authors = _authors.GetAll().OrderBy(a => a.Id).ToList();
+                if (authors.Count == 0)
+                {
+                    MenuManagement.RightWarn("No authors.");
+                    MenuManagement.RightEnd(); return;
+                }
+
+                MenuManagement.RightWriteLine("-- Authors --");
+                foreach (var a in authors)
+                {
+                    var full = string.IsNullOrWhiteSpace(a.Surname) ? a.Name : $"{a.Name} {a.Surname}";
+                    MenuManagement.RightWriteLine($"ID:[{a.Id}] {full} | Books: {a.Books?.Count ?? 0}");
+                }
+                MenuManagement.RightWriteLine("");
+
+                var input = (MenuManagement.RightAsk("Author Id (menu): ") ?? "").Trim();
+                if (input.Equals("menu", StringComparison.OrdinalIgnoreCase)) { MenuManagement.RightEnd(); return; }
+
+                if (!int.TryParse(input, out var id))
+                {
+                    MenuManagement.RightError("Input a number.");
+                    MenuManagement.RightEnd(); continue;
+                }
+
+                var author = _authors.GetByID(id);
+                if (author is null)
+                {
+                    MenuManagement.RightError("Author not found.");
+                    MenuManagement.RightEnd(); continue;
+                }
+
+                try
+                {
+                    _authors.Delete(id);
+                    MenuManagement.RightSuccess("Author deleted.");
+                }
+                catch (Exception ex)
+                {
+                    MenuManagement.RightError($"Error: {ex.Message}");
+                }
+
+                MenuManagement.RightEnd(); return;
+            }
+        }
+
         // 6. Show All Authors
         public void ShowAllAuthors()
         {
+            //Mövcud müəllifləri ekrana siyahı şəklində çıxarır. Əgər müəlliflər siyahısı boşdursa, istifadəçiyə xəbərdarlıq mesajı göstərilir.
             MenuManagement.RightBegin("All Authors");
             var list = _authors.GetAll();
             if (list.Count == 0)
@@ -382,7 +490,7 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                 MenuManagement.RightWarn("No authors.");
                 MenuManagement.RightEnd(); return;
             }
-            foreach (var a in list.OrderBy(x => x.Name))
+            foreach (var a in list.OrderBy(x => x.Id))
             {
                 var full = string.IsNullOrWhiteSpace(a.Surname) ? a.Name : $"{a.Name} {a.Surname}";
                 MenuManagement.RightWriteLine($"ID:[{a.Id}] Name:{full} | Gender:{a.Gender} | Books: {a.Books?.Count ?? 0}");
@@ -397,7 +505,7 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
             {
                 MenuManagement.RightBegin("Author's Books");
 
-                var authors = _authors.GetAll().OrderBy(a => a.Name).ToList();
+                var authors = _authors.GetAll().OrderBy(a => a.Id).ToList();
                 if (authors.Count == 0)
                 {
                     MenuManagement.RightWarn("No authors.");
@@ -415,6 +523,7 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                 var s = (MenuManagement.RightAsk("Author Id (menu): ") ?? "").Trim();
                 if (s.Equals("menu", StringComparison.OrdinalIgnoreCase)) { MenuManagement.RightEnd(); return; }
 
+                //Əgər istifadəçi düzgün rəqəm daxil etməyibsə, xəta mesajı göstərilir və dövr yenidən başlayır.
                 if (!int.TryParse(s, out var authorId))
                 {
                     MenuManagement.RightError("Wrong choice. Input a number.");
@@ -459,7 +568,7 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
 
                 if (step == 0)
                 {
-                    var books = _books.GetAll().OrderBy(b => b.Name).ToList();
+                    var books = _books.GetAll().OrderBy(b => b.Id).ToList();
                     if (books.Count == 0)
                     {
                         MenuManagement.RightWarn("No books.");

@@ -359,20 +359,21 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                 [3] = ("Get Book by Id", manage.GetBookById),
                 [4] = ("Show All Books", manage.ShowAllBooks),
                 [5] = ("Create Author", manage.CreateAuthor),
-                [6] = ("Show All Authors", manage.ShowAllAuthors),
-                [7] = ("Show Author's Books", manage.ShowAuthorsBooks),
-                [8] = ("Reserve Book", manage.ReserveBook),
-                [9] = ("Reservation List", manage.ReservationList),
-                [10] = ("Change Reservation Status", manage.ChangeReservationStatus),
-                [11] = ("User's Reservations List", manage.UsersReservationsList),
+                [6] = ("Delete Author", manage.DeleteAuthor),          // ← YENİ
+                [7] = ("Show All Authors", manage.ShowAllAuthors),
+                [8] = ("Show Author's Books", manage.ShowAuthorsBooks),
+                [9] = ("Reserve Book", manage.ReserveBook),
+                [10] = ("Reservation List", manage.ReservationList),
+                [11] = ("Change Reservation Status", manage.ChangeReservationStatus),
+                [12] = ("User's Reservations List", manage.UsersReservationsList),
             };
 
-            Intro("ONLINE_LIBRARY // MAIN_MENU");
+            Intro("PROTOTYPE_LIBRARY // MAIN_MENU");
 
             while (true)
             {
                 ComputeLayout();
-                Frame("Online Library");
+                Frame("Prototype Library");
 
                 var menuItems = actions
                     .OrderBy(kv => kv.Key)
@@ -384,14 +385,14 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                 RightBegin("Welcome");
                 RightWriteLines(new[]
                 {
-                    "Use numbers [1-11] to navigate.",
+                    "Use numbers [1-12] to navigate.",
                     "Press 0 to Exit."
                 });
-                RightEnd("Enter your choice [0-11] and press ENTER...");
+                RightEnd("Enter your choice [0-12] and press ENTER...");
 
-                //Footer("Enter your choice [0-11]: ");
+                //Footer("Enter your choice [0-12]: ");
                 //Console.SetCursorPosition(L.Bottom.x1 + 25, L.Bottom.y1 + 1);
-                var raw = (FooterAsk("Enter your choice [0-11]: ") ?? "").Trim();
+                var raw = (FooterAsk("Enter your choice [0-12]: ") ?? "").Trim();
                 Console.CursorVisible = true;
                 
                 Console.CursorVisible = false;
