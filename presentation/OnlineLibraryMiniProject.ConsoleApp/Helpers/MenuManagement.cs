@@ -362,7 +362,7 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                 [6] = ("Delete Author", manage.DeleteAuthor),          // ← YENİ
                 [7] = ("Show All Authors", manage.ShowAllAuthors),
                 [8] = ("Show Author's Books", manage.ShowAuthorsBooks),
-                [9] = ("Reserve Book", manage.ReserveBook),
+                [9] = ("Reserve Book", manage.ReserveBook),  
                 [10] = ("Reservation List", manage.ReservationList),
                 [11] = ("Change Reservation Status", manage.ChangeReservationStatus),
                 [12] = ("User's Reservations List", manage.UsersReservationsList),

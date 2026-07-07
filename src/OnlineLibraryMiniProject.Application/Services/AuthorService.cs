@@ -16,7 +16,7 @@ namespace OnlineLibraryMiniProject.Application.Services
             _authors = authors;
         }
 
-        // 1. Create - Yeni Müəllif Əlavə Etmək
+        //1. Create - Yeni Müəllif Əlavə Etmək
         public void Create(Author author)
         {
             if (author is null)

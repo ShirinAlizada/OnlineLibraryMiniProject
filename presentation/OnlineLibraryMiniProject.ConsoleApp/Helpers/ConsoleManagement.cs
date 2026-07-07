@@ -23,6 +23,7 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
         }
 
         // Təhlükəsiz şəkildə integer (rəqəm) oxumaq üçün dövr
+        // İstifadəçidən düzgün bir rəqəm daxil etməsini tələb edir
         public static int ReadInteger(string prompt)
         {
             while (true)

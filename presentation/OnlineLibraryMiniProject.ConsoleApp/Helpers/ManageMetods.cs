@@ -26,6 +26,9 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
         //boşluqdursa (' ') və ya defisdirsə ('-'), metod true qaytarır. Əgər bircə dənə də olsun rəqəm və ya fərqli simvol varsa, false qaytarır.
         private static bool IsLettersOnly(string s) => s.All(c => char.IsLetter(c) || c == ' ' || c == '-');
 
+        //LINQ-ın .Any() metodundan istifadə edir. Mətndəki simvolların hər hansı biri (c) hərfdirsə (char.IsLetter), metod true qaytarır.
+        private static bool HasAtLeastOneLetter(string s) => s.Any(char.IsLetter);
+
 
 
         // Enum-u ya rəqəmlə, ya da adı ilə oxumaq üçün ümumi metod
@@ -34,7 +37,7 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
         //Enum daxilində təyin olunubsa(Enum.IsDefined), həmin rəqəmi Enum dəyərinə çevirir(result = (TEnum)...) və true qaytarır.
         //Əgər rəqəm deyilsə, Enum.TryParse ilə mətni birbaşa Enum adlarına görə axtarır
         //(məsələn: "Active", "Pending"). true arqumenti böyük/kiçik hərf fərqini qorunmamasını təmin edir.
-        
+
         private static bool TryReadEnum<TEnum>(string input, out TEnum result) where TEnum : struct, Enum
         {
             if (int.TryParse(input, out var n) && Enum.IsDefined(typeof(TEnum), n))
@@ -80,6 +83,9 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                     //Düzgün yazsa, name dəyişəninə yazılır və step = 1 olur (növbəti addıma keçir).
 
                     var input = (MenuManagement.RightAsk("Book name (menu): ") ?? "").Trim();
+
+                    //StringComparison.OrdinalIgnoreCase ifadəsi C#-da mətnləri (string) müqayisə edərkən böyük-kiçik hərf fərqini tamamilə aradan qaldırmaq
+                    //və bu prosesi proqram üçün ən təhlükəsiz, ən sürətli şəkildə etmək üçün istifadə olunur.
                     if (input.Equals("menu", StringComparison.OrdinalIgnoreCase)) { MenuManagement.RightEnd(); return; }
                     if (string.IsNullOrWhiteSpace(input))
                     {
@@ -94,6 +100,8 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                    
                     //Istifadəçi "back" yazarsa, step = 0 edilir və continue vasitəsilə yenidən kitab adı soruşulan hissəyə qaytarılır.
                     var input = (MenuManagement.RightAsk("Page count (menu/back): ") ?? "").Trim();
+
+
                     if (input.Equals("menu", StringComparison.OrdinalIgnoreCase)) { MenuManagement.RightEnd(); return; }
                     if (input.Equals("back", StringComparison.OrdinalIgnoreCase)) { MenuManagement.RightEnd(); step = 0; continue; }
 
@@ -364,17 +372,19 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                         MenuManagement.RightError("Name must not be empty.");
                         MenuManagement.RightEnd(); continue;
                     }
-                    if (!IsLettersOnly(input))
+                    //İstifadəçi adını daxil edərkən yalnız hərflərdən ibarət olub-olmaması və ən azı bir hərf olub-olmaması yoxlanılır.
+                    if (!IsLettersOnly(input) || !HasAtLeastOneLetter(input))
                     {
-                        //Əgər istifadəçi adın daxilində hərf olmayan simvol daxil edirsə, xəta mesajı göstərilir və dövr yenidən başlayır.
-                        MenuManagement.RightError("Name must contain only letters.");
+                        MenuManagement.RightError("Name must contain at least one letter and no digits.");
                         MenuManagement.RightEnd(); continue;
                     }
+
                     name = input;
                     step = 1;
                 }
                 else if (step == 1)
                 {
+                    //İstifadəçidən soyad soruşulur. "menu" yazsa, funksiyadan çıxılır. "back" yazsa, step = 0 olur və ad soruşulan hissəyə qaytarılır.
                     var input = (MenuManagement.RightAsk("Surname (optional, menu/back): ") ?? "").Trim();
                     if (input.Equals("menu", StringComparison.OrdinalIgnoreCase)) { MenuManagement.RightEnd(); return; }
                     if (input.Equals("back", StringComparison.OrdinalIgnoreCase)) { MenuManagement.RightEnd(); step = 0; continue; }
@@ -384,9 +394,10 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                         surname = null;
                     else
                     {
-                        if (!IsLettersOnly(input))
+                        //İstifadəçi soyadını daxil edərkən yalnız hərflərdən ibarət olub-olmaması və ən azı bir hərf olub-olmaması yoxlanılır.
+                        if (!IsLettersOnly(input) || !HasAtLeastOneLetter(input))
                         {
-                            MenuManagement.RightError("Surname must contain only letters.");
+                            MenuManagement.RightError("Surname must contain at least one letter and no digits.");
                             MenuManagement.RightEnd(); continue;
                         }
                         surname = input;
@@ -413,9 +424,11 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                     var author = new Author { Name = name.Trim(), Surname = surname?.Trim(), Gender = gender };
                     try
                     {
+                        //Müəllif yaradılır və məlumat bazasına əlavə olunur.
                         _authors.Create(author);
                         MenuManagement.RightSuccess("Author created.");
                     }
+                    //Əgər müəllif yaradılarkən hər hansı bir xəta baş verərsə, istifadəçiyə xəta mesajı göstərilir.
                     catch (Exception ex)
                     {
                         MenuManagement.RightError($"Error: {ex.Message}");
@@ -434,6 +447,7 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
             {
                 MenuManagement.RightBegin("Delete Author");
 
+                //Mövcud müəllifləri ekrana siyahı şəklində çıxarır. Əgər müəlliflər siyahısı boşdursa, istifadəçiyə xəbərdarlıq mesajı göstərilir.
                 var authors = _authors.GetAll().OrderBy(a => a.Id).ToList();
                 if (authors.Count == 0)
                 {
@@ -627,6 +641,11 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                         MenuManagement.RightError("Use yyyy-MM-dd.");
                         MenuManagement.RightEnd(); continue;
                     }
+                    if (start < DateTime.Today)
+                    {
+                        MenuManagement.RightError("Start date must be today or later.");
+                        MenuManagement.RightEnd(); continue;
+                    }
                     step = 3;
                     MenuManagement.RightEnd();
                     continue;
@@ -640,6 +659,12 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                     if (!DateTime.TryParseExact(s, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out end))
                     {
                         MenuManagement.RightError("Use yyyy-MM-dd.");
+                        MenuManagement.RightEnd(); continue;
+                    }
+
+                    if (end < start)
+                    {
+                        MenuManagement.RightError("End date must be after start date.");
                         MenuManagement.RightEnd(); continue;
                     }
 
@@ -739,6 +764,7 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                     }
                     MenuManagement.RightWriteLine("");
 
+                    //İstifadəçidən dəyişdirmək istədiyi rezervasiya ID-si soruşulur. "menu" yazsa, funksiyadan çıxılır.
                     var s = (MenuManagement.RightAsk("Reservation Id (menu): ") ?? "").Trim();
                     if (s.Equals("menu", StringComparison.OrdinalIgnoreCase)) { MenuManagement.RightEnd(); return; }
 
@@ -748,6 +774,7 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                         MenuManagement.RightEnd(); continue;
                     }
 
+                    //Seçilmiş rezervasiya ID-si ilə siyahıdan uyğun rezervasiya tapılır. Əgər tapılmazsa, istifadəçiyə xəta mesajı göstərilir və dövr yenidən başlayır.
                     var selected = list.FirstOrDefault(r => r.Id == selectedId);
                     if (selected is null)
                     {
@@ -787,6 +814,7 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
 
                     try
                     {
+                        //Rezervasiya statusu dəyişdirilir və məlumat bazasında yenilənir. Əgər hər hansı bir xəta baş verərsə, istifadəçiyə xəta mesajı göstərilir.
                         _reservations.Update(selectedId, newStatus);
                         MenuManagement.RightSuccess("Reservation status updated.");
                     }
@@ -811,6 +839,7 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
             {
                 if (step == 0)
                 {
+                    //İstifadəçidən FIN kodu soruşulur. "menu" yazsa, funksiyadan çıxılır. Əgər FIN kodu boşdursa, xəta mesajı göstərilir və dövr yenidən başlayır.
                     MenuManagement.RightBegin("User's Reservations");
                     var input = (MenuManagement.RightAsk("FinCode (menu): ") ?? "").Trim();
                     if (input.Equals("menu", StringComparison.OrdinalIgnoreCase)) { MenuManagement.RightEnd(); return; }
@@ -835,6 +864,7 @@ namespace OnlineLibraryMiniProject.ConsoleApp.Helpers
                 }
                 else
                 {
+                    //İstifadəçinin rezervasiyaları ekrana çıxarılır. Hər bir rezervasiya üçün məlumatlar göstərilir. Əgər kitab obyekti null-dursa, sadəcə BookId göstərilir.
                     MenuManagement.RightBegin($"Reservations of {fin}");
                     foreach (var r in list)
                     {
